@@ -1,0 +1,215 @@
+
+---
+title: "Homework_Problem 1: When do Estimates Miss?"
+author: "Yongsu Cho"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Problem 1(a)
+
+```{r}
+set.seed(123)
+#function that calculates the three estimators
+
+variance_estimators <- function(x) {
+
+
+n <- length(x)
+
+var_n <- sum((x-mean(x))^2)/n
+var_n_minus_1 <- var(x)
+sample_sd <- sd(x)
+
+return(c(
+var_n = var_n,
+var_n_minus_1 = var_n_minus_1,
+sample_sd = sample_sd
+))
+}
+
+#Simulate a sample of 10 observations from N(0,2)
+
+x <- rnorm(10, mean = 0, sd = 2)
+
+#Check the function
+variance_estimators(x)
+
+```
+
+#Problem 1(b)
+
+```{r}
+reps <- 1000
+n <- 5
+true_var <- 4
+
+# 1000 samples of 5 observations from the population 
+# and apply your function to each.
+
+sim <- replicate(reps, variance_estimators(rnorm(n, mean = 0, sd = 2)))
+
+# Store the results in a data frame with one row per sample
+
+sim_df <- as.data.frame(t(sim))
+
+# Check the data frame
+
+head(sim_df)
+
+# Calculate the mean of each estimator
+
+estimator_means <- colMeans(sim_df)
+estimator_means
+
+# Plot the sampling distributions
+# of the two variance estimators
+
+hist(
+sim_df$var_n,
+breaks = 30,
+xlim = range(
+c(sim_df$var_n, sim_df$var_n_minus_1)
+),
+
+xlab = "Variance Estimate",
+main = "Sampling Distributions of Variance Estimators"
+)
+
+hist(
+sim_df$var_n_minus_1,
+breaks = 30,
+add = TRUE
+)
+
+# true variance
+abline(
+v = true_var,
+lwd = 3)
+
+# the mean of the divide-by-n estimator
+abline(
+v = estimator_means["var_n"],
+lty = 2)
+
+# the mean of the divide-by-(n-1) estimator
+abline(
+v = estimator_means["var_n_minus_1"],
+lty = 3
+)
+
+```
+The divide_by_n variance estimator is downward biased. Across the 1000 simulations, its mean estimate was 3.197351, which is below the true variance of 4. In contrast, the divide_by_n-1 estimator had a mean estimate of 3.996689, which is very close to the true variance.
+
+# Problem 1(c)
+
+```{r}
+sample_sizes <- c(3, 5, 10, 30, 100)
+
+bias_var_n <- numeric(length(sample_sizes))
+bias_var_n_minus_1 <- numeric(length(sample_sizes))
+
+for (i in 1: length(sample_sizes)) {
+n <- sample_sizes[i]
+sim <- replicate(
+reps,
+variance_estimators(rnorm(n, mean = 0, sd = 2))
+)
+
+sim_df <- as.data.frame(t(sim))
+
+bias_var_n[i] <- mean(sim_df$var_n) - true_var
+
+bias_var_n_minus_1[i] <- mean(sim_df$var_n_minus_1) - true_var}
+
+# Show the estimated bias
+
+bias_var_n
+bias_var_n_minus_1
+
+# Plot estimated bias against sample size
+
+plot(
+sample_sizes,
+bias_var_n,
+type = "b",
+xlab = "Sample size (n)",
+ylab = "Estimated bias",
+main = "Estimated bias by Sample size"
+)
+
+
+lines(
+sample_sizes,
+bias_var_n_minus_1,
+type = "b",
+lty = 2
+)
+
+abline(
+h = 0, lty = 3)
+```
+
+# Problem 1(d)
+
+```{r}
+sample_sizes <- c(3, 5, 10, 30, 100)
+reps <- 1000
+true_sd <- 2
+
+bias_sd <- numeric(length(sample_sizes))
+
+for (i in 1: length(sample_sizes)) {
+
+n <- sample_sizes[i]
+sim <- replicate(
+reps,
+variance_estimators(rnorm(n, mean = 0, sd =2))
+)
+
+sim_df <- as.data.frame(t(sim))
+bias_sd [i] <- mean(sim_df$sample_sd) - 2}
+
+# The estimated bias for each sample size
+
+sd_bias_results <- data.frame(
+n = sample_sizes,
+bias_sd = bias_sd)
+
+
+# Results
+
+sd_bias_results
+
+```
+The sample standard deviation s is downward biased as an estimator of sigma = 2. 
+However, the magnitude of the bias becomes smaller as the sample size increases and approaches zero for larger samples.
+
+
+# Problem 1(e)
+
+```{r}
+n <- 5
+
+sim_e <- replicate(
+reps,
+variance_estimators(rnorm(n, mean = 0, sd = 2)))
+
+sim_e_df <- as.data.frame(t(sim_e))
+
+# Standard deviation of the 1000 estimates
+
+sd_var_n <- sd(sim_e_df$var_n)
+sd_var_n_minus_1 <- sd(sim_e_df$var_n_minus_1)
+
+sd_var_n
+sd_var_n_minus_1
+
+```
+At n = 5, the sd of the 1000 estimates from the divide_by_n variance estimator is less variable.
+However, lower variability does not automatically make it the better estimator because the divide_by_n estimator is downward biased. The divide_by_n-1 estimator has greater variability but is unbiased for the population variance. Thus, variability alone is not sufficient for evaluating an estimator.
+
+

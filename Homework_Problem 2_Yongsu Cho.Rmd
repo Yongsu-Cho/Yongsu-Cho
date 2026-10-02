@@ -1,0 +1,137 @@
+---
+title: 'Homework_Problem 2: When do Estimates Miss?'
+author: "Yongsu Cho"
+date: "2026-10-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 2(a)
+
+```{r}
+
+set.seed(321)
+
+n <- 100
+rho <- 0.5
+
+# Generate z an u
+
+z <- rnorm(n, mean = 0, sd = 1)
+u <- rnorm(n, mean = 0, sd = 1)
+
+# Generate x
+
+x <- rho * z + sqrt(1-rho^2) * u
+
+# Generate epsilon
+
+epsilon <- rnorm(n, mean = 0, sd =1)
+
+# Generate y
+
+y <- 1 + 2 * x + 3 * z + epsilon
+
+# Put the variables together
+
+data <- data.frame(y, x, z)
+
+head(data)
+
+cor(x, z)
+
+```
+
+# Problem 2(b)
+
+```{r}
+model_omit <- lm(y~x, data=data)
+model_true <- lm(y~x+z, data=data)
+summary(model_omit)
+summary(model_true)
+
+plot(
+  data$x,
+  data$y,
+  xlab = "News consumption (x)",
+  ylab = "Political Knowledge (y)",
+  main = "Political Knowledge and News Consumption"
+)
+
+abline(model_omit)
+
+```
+
+The model that omits political interest estimates the coeff. on news consumption as 3.619, substantially higher than the true value of 2.
+When political interest is included, the estimated coeff. on news consumption is 1.946, much closer to the true value.
+This shows omitted variable bias when political interest is excluded from the model.
+
+# Problem 2(c)
+
+```{r}
+n <- 1000
+rho <- 0.5
+
+z <- rnorm(n, mean = 0, sd = 1)
+u <- rnorm(n, mean = 0, sd = 1)
+x <- rho*z + sqrt(1-rho^2) * u
+epsilon <- rnorm(n, mean = 0, sd = 1)
+
+y <- 1+ 2 * x + 3 * z + epsilon
+
+data_1000 <- data.frame(y, x, z)
+
+model_omit_1000 <- lm(y~x, data = data_1000)
+
+model_true_1000 <- lm(y~x+z, data = data_1000)
+
+summary(model_omit_1000)
+summary(model_true_1000)
+
+plot(
+  data_1000$x, data_1000$y,
+  xlab = "News consumption (x)",
+  ylab = "Political knowledge (y)",
+  main = "Political knowledge and News Consumption: n = 1000")
+
+abline(model_omit_1000)
+```
+Just increasing the sample size (from 100 to 1000) cannot resolve the bias. When political interest (z) was included, the estimated coeff. became very close to the true value.
+
+# Problem 2(d)
+
+```{r}
+n <- 1000
+rho <- 0
+
+z <- rnorm(n, mean = 0, sd = 1)
+u <- rnorm(n, mean = 0, sd = 1)
+x <- rho*z + sqrt(1-rho^2) * u
+epsilon <- rnorm(n, mean = 0, sd = 1)
+
+y <- 1+ 2 * x + 3 * z + epsilon
+
+data_rho0 <- data.frame(y, x, z)
+
+model_omit_rho0 <- lm(y~x, data = data_rho0)
+
+model_true_rho0 <- lm(y~x+z, data = data_rho0)
+
+summary(model_omit_rho0)
+summary(model_true_rho0)
+
+plot(
+  data_rho0$x, data_rho0$y,
+  xlab = "News consumption (x)",
+  ylab = "Political knowledge (y)",
+  main = "Political knowledge and News Consumption: rho = 0")
+
+abline(model_omit_rho0)
+```
+When the correlation between news consumption and political interest is set to zero, the estimated coefficient on news consumption is 2.233 when political interest is omitted and 2.043 when political interest is included. Both estimates are close to the true value of 2.
+This demonstrates that omitted variable bias is a concern when an omitted variable affects the outcome and is correlated with an included explanatory variable.
+
+
